@@ -4,3 +4,47 @@ on:
   push:
     branches:
       - feature/esteira
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Lint
+        run: |
+          pip install flake8
+          flake8 app tests
+
+      - name: Testes
+        run: pytest tests/
+
+      - name: Executar pipeline
+        run: python app/pipeline.py
+
+      - name: Upload do artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: summary-report
+          path: output/summary.csv
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy (placeholder)
+        run: echo "Publicando artefato aprovado no ambiente final"
